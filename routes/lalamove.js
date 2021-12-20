@@ -168,7 +168,6 @@ router.post('/orders', async (req, res, next) => {
       },
     })
     .then((result) => {
-     console.log(result)
       return res.status(200).json({
         statusCode: 200,
         data:result.data
@@ -199,7 +198,6 @@ router.get('/orders/:orderRef', async (req, res, next) => {
   const path = `/v2/orders/${req.params.orderRef}`;
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
-  console.log(req.params)
 
   try{
     const response = await axios
@@ -228,7 +226,6 @@ router.get('/orders/:orderRef', async (req, res, next) => {
     })
 
   }catch(e){
-    console.log(e)
     return res.status(500).json({
       statusCode:500,
       message:e
@@ -244,7 +241,6 @@ router.get('/orders/:orderRef/drivers/:driverID', async (req, res, next) => {
   const path = `/v2/orders/${req.params.orderRef}/drivers/${req.params.driverID}`;
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
-  console.log(req.params)
 
   try{
     const response = await axios
@@ -289,7 +285,6 @@ router.get('/orders/:orderRef/drivers/:driverID/location', async (req, res, next
   const path = `/v2/orders/${req.params.orderRef}/drivers/${req.params.driverID}/location`;
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
-  console.log(req.params)
 
   try{
     const response = await axios
@@ -335,7 +330,6 @@ router.put('/orders/:orderRef/cancel', async (req, res, next) =>{
   const path = `/v2/orders/${req.params.orderRef}/cancel`;
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n${body}`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
-  console.log(req.headers.market)
 
   try{
     const response = await axios
@@ -354,7 +348,6 @@ router.put('/orders/:orderRef/cancel', async (req, res, next) =>{
 
       })
     }).catch((err) => {
-      console.log(err.response)
       if(err.response.data){
 
         return res.status(409).json({
