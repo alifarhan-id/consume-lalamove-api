@@ -15,8 +15,9 @@ router.post('/quotations', async (req, res, next) => {
   const path = "/v2/quotations";
 
   const body = JSON.stringify({
+    scheduleAt:req.body.scheduleAt,
     serviceType: req.body.serviceType,
-    specialRequests: [],
+    specialRequests: req.body.specialRequests,
     stops: [
       {
         location: {
@@ -105,6 +106,8 @@ router.post('/orders', async (req, res, next) => {
   const method = "POST";
   const path = "/v2/orders";
   const body = JSON.stringify({
+    scheduleAt:req.body.scheduleAt,
+    serviceType: req.body.serviceType,
     serviceType: req.body.serviceType,
     specialRequests: [],
     stops: [
@@ -333,7 +336,7 @@ router.put('/orders/:orderRef/cancel', async (req, res, next) =>{
 
   try{
     const response = await axios
-    .put('https://rest.sandbox.lalamove.com'+path, {
+    .put('https://rest.sandbox.lalamove.com'+path, body, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `hmac ${API_KEY}:${time}:${SIGNATURE}`,
