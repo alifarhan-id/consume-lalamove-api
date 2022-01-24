@@ -7,6 +7,7 @@ var router = express.Router();
 
 /* GET quotations. */
 router.post('/quotations', async (req, res, next) => {
+  console.log(req.body)
 
   const API_KEY = process.env.API_KEY;
   const SECRET = process.env.SECRET;
@@ -14,51 +15,58 @@ router.post('/quotations', async (req, res, next) => {
   const method = "POST";
   const path = "/v2/quotations";
 
-  const body = JSON.stringify({
-    scheduleAt:req.body.scheduleAt,
-    serviceType: req.body.serviceType,
-    specialRequests: req.body.specialRequests,
-    stops: [
-      {
-        location: {
-          lat: req.body.pick_up_point_lat,
-          lng: req.body.pick_up_point_lng,
-        },
-        addresses: {
-          ms_MY: {
-            displayString:req.body.pick_up_point_displayString,
-            market: req.body.market,
-          },
-        },
-      },
-      {
-        location: {
-          lat: req.body.drop_point_lat,
-          lng: req.body.drop_point_lng,
-        },
-        addresses: {
-          ms_MY: {
-            displayString:req.body.drop_point_displayString,
-            market: req.body.market,
-          },
-        },
-      },
-    ],
-    requesterContact:{
-      name:req.body.requesterContacName,
-      phone:req.body.requesterContactPhone
+  // const body = JSON.stringify({
+  //   scheduleAt:req.body.scheduleAt,
+  //   serviceType: req.body.serviceType,
+  //   specialRequests: req.body.specialRequests,
+  //   stops: [
+  //     {
+  //         //location pick-up
+  //       location: {
+  //         lat: req.body.pick_up_point_lat,
+  //         lng: req.body.pick_up_point_lng,
+  //       },
+  //       addresses: {
+  //         ms_MY: {
+  //           displayString:req.body.pick_up_point_displayString,
+  //           market: req.body.market,
+  //         },
+  //       },
+  //     },
+      
+  //     {
+  //       location: {
+  //         lat: req.body.drop_point_lat,
+  //         lng: req.body.drop_point_lng,
+  //       },
+  //       addresses: {
+  //         ms_MY: {
+  //           displayString:req.body.drop_point_displayString,
+  //           market: req.body.market,
+  //         },
+  //       },
+  //     },
+  //   ],
+  //   requesterContact:{
+  //     name:req.body.requesterContacName,
+  //     phone:req.body.requesterContactPhone
 
-    },
-    deliveries: [
-      {
-        toStop: 1,
-        toContact: {
-          name: req.body.deliveriesName,
-          phone: req.body.deliveriesPhone,
-        },
-      },
-    ],
-  });
+  //   },
+  //   deliveries: [
+  //     {
+  //       toStop: 1,
+  //       toContact: {
+  //         name: req.body.deliveriesName,
+  //         phone: req.body.deliveriesPhone,
+  //       },
+  //     },
+  //   ],
+  // });
+
+
+
+  const body = JSON.stringify(req.body)
+
 
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n${body}`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
@@ -81,6 +89,7 @@ router.post('/quotations', async (req, res, next) => {
 
       })
     }).catch((err) => {
+      console.log(err)
       return res.status(409).json({
         statusCode:409,
         message:err.response.data
@@ -88,6 +97,7 @@ router.post('/quotations', async (req, res, next) => {
     })
 
   }catch(e){
+    console.log(e)
     return res.status(500).json({
       statusCode:500,
       message:e
@@ -105,57 +115,58 @@ router.post('/orders', async (req, res, next) => {
   const time = new Date().getTime().toString();
   const method = "POST";
   const path = "/v2/orders";
-  const body = JSON.stringify({
-    scheduleAt:req.body.scheduleAt,
-    serviceType: req.body.serviceType,
-    serviceType: req.body.serviceType,
-    specialRequests: [],
-    stops: [
-      {
-        location: {
-          lat: req.body.pick_up_point_lat,
-          lng: req.body.pick_up_point_lng,
-        },
-        addresses: {
-          ms_MY: {
-            displayString:req.body.pick_up_point_displayString,
-            market: req.body.market,
-          },
-        },
-      },
-      {
-        location: {
-          lat: req.body.drop_point_lat,
-          lng: req.body.drop_point_lng,
-        },
-        addresses: {
-          ms_MY: {
-            displayString:req.body.drop_point_displayString,
-            market: req.body.market,
-          },
-        },
-      },
-    ],
-    requesterContact:{
-      name:req.body.requesterContacName,
-      phone:req.body.requesterContactPhone
+  // const body = JSON.stringify({
+  //   scheduleAt:req.body.scheduleAt,
+  //   serviceType: req.body.serviceType,
+  //   serviceType: req.body.serviceType,
+  //   specialRequests: [],
+  //   stops: [
+  //     {
+  //       location: {
+  //         lat: req.body.pick_up_point_lat,
+  //         lng: req.body.pick_up_point_lng,
+  //       },
+  //       addresses: {
+  //         ms_MY: {
+  //           displayString:req.body.pick_up_point_displayString,
+  //           market: req.body.market,
+  //         },
+  //       },
+  //     },
+  //     {
+  //       location: {
+  //         lat: req.body.drop_point_lat,
+  //         lng: req.body.drop_point_lng,
+  //       },
+  //       addresses: {
+  //         ms_MY: {
+  //           displayString:req.body.drop_point_displayString,
+  //           market: req.body.market,
+  //         },
+  //       },
+  //     },
+  //   ],
+  //   requesterContact:{
+  //     name:req.body.requesterContacName,
+  //     phone:req.body.requesterContactPhone
 
-    },
-    deliveries: [
-      {
-        toStop: 1,
-        toContact: {
-          name: req.body.deliveriesName,
-          phone: req.body.deliveriesPhone,
-        },
-      },
-    ],
-    quotedTotalFee:{
-      amount: req.body.quotedTotalFee.amount,
-      currency: req.body.quotedTotalFee.currency
-    },
-    pod:req.body.pod
-  });
+  //   },
+  //   deliveries: [
+  //     {
+  //       toStop: 1,
+  //       toContact: {
+  //         name: req.body.deliveriesName,
+  //         phone: req.body.deliveriesPhone,
+  //       },
+  //     },
+  //   ],
+  //   quotedTotalFee:{
+  //     amount: req.body.quotedTotalFee.amount,
+  //     currency: req.body.quotedTotalFee.currency
+  //   },
+  //   pod:req.body.pod
+  // });
+  const body = JSON.stringify(req.body)
 
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n${body}`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
