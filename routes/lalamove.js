@@ -7,7 +7,6 @@ var router = express.Router();
 
 /* GET quotations. */
 router.post('/quotations', async (req, res, next) => {
-  console.log(req.body)
 
   const API_KEY = process.env.API_KEY;
   const SECRET = process.env.SECRET;
@@ -15,62 +14,89 @@ router.post('/quotations', async (req, res, next) => {
   const method = "POST";
   const path = "/v2/quotations";
 
-  // const body = JSON.stringify({
-  //   scheduleAt:req.body.scheduleAt,
-  //   serviceType: req.body.serviceType,
-  //   specialRequests: req.body.specialRequests,
-  //   stops: [
-  //     {
-  //         //location pick-up
-  //       location: {
-  //         lat: req.body.pick_up_point_lat,
-  //         lng: req.body.pick_up_point_lng,
-  //       },
-  //       addresses: {
-  //         ms_MY: {
-  //           displayString:req.body.pick_up_point_displayString,
-  //           market: req.body.market,
-  //         },
-  //       },
-  //     },
-      
-  //     {
-  //       location: {
-  //         lat: req.body.drop_point_lat,
-  //         lng: req.body.drop_point_lng,
-  //       },
-  //       addresses: {
-  //         ms_MY: {
-  //           displayString:req.body.drop_point_displayString,
-  //           market: req.body.market,
-  //         },
-  //       },
-  //     },
-  //   ],
-  //   requesterContact:{
-  //     name:req.body.requesterContacName,
-  //     phone:req.body.requesterContactPhone
+  //======= match stops body for lalamove
+  let dropPoint = req.body.drop_point
+  function renameStops(){
+    dropPoint = dropPoint.map(function(obj){
+      obj['lat'] = obj['drop_point_lat']
+      obj['lng'] = obj['drop_point_lng'] 
+      obj['displayString'] =  obj['drop_point_displayString']
+      delete  obj['drop_point_lat']
+      delete  obj['drop_point_lng'] 
+      delete  obj['drop_point_displayString']
+      return obj;
+    })
+  }
+  renameStops() // call the function
+  let object = [
+      {
+        location:{
+          "lat":req.body.pick_up_point_lat,
+          "lng":req.body.pick_up_point_lng
+        },
+        addresses:{
+          "ms_MY":{
+            "displayString":req.body.pick_up_point_displayString,
+            "market":req.body.market
+          }
+        }
+       }   
+  ]
 
-  //   },
-  //   deliveries: [
-  //     {
-  //       toStop: 1,
-  //       toContact: {
-  //         name: req.body.deliveriesName,
-  //         phone: req.body.deliveriesPhone,
-  //       },
-  //     },
-  //   ],
-  // });
+  for(let i = 0; i < dropPoint.length; i++){
+    let data = [
+       {
+        location:{
+          "lat":dropPoint[i].lat,
+          "lng":dropPoint[i].lng
+        },
+        addresses:{
+          "ms_MY":{
+            "displayString":dropPoint[i].displayString,
+            "market":req.body.market
+          }
+        }
+       }
+    ]
+    object.push(...data)
 
+  }
+  const stops = object;
+  //======= end of match stops body for lalamove ===
 
+  //==== match deliveries body for lalamove
 
-  const body = JSON.stringify(req.body)
-
+  let deliveries = [];
+  let temp = req.body.deliveries
+  
+  for(let i = 0; i < temp.length; i++){
+    let data = [
+      {
+        "toStop":i+1,
+        "toContact":{
+          "name":temp[i].deliveriesName,
+          "phone":temp[i].deliveriesPhone,
+        },
+        "remarks":temp[i].remarks
+      }
+    ]
+    deliveries.push(...data)
+  }
+  //==== end of match deliveris body for lalamove
+  const body = JSON.stringify({
+    scheduleAt:req.body.scheduleAt,
+    serviceType: req.body.serviceType,
+    specialRequests: req.body.specialRequests,
+    stops:stops,
+    requesterContact:{
+      name:req.body.requesterContacName,
+      phone:req.body.requesterContactPhone
+    },
+    deliveries: deliveries
+  });
 
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n${body}`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
-
   try{
     const response = await axios
     .post('https://rest.sandbox.lalamove.com'+path, body, {
@@ -82,11 +108,9 @@ router.post('/quotations', async (req, res, next) => {
       },
     })
     .then((result) => {
-
       return res.status(200).json({
         statusCode: 200,
         data:result.data
-
       })
     }).catch((err) => {
       console.log(err)
@@ -95,7 +119,6 @@ router.post('/quotations', async (req, res, next) => {
         message:err.response.data
       })
     })
-
   }catch(e){
     console.log(e)
     return res.status(500).json({
@@ -103,9 +126,6 @@ router.post('/quotations', async (req, res, next) => {
       message:e
     })
   }
- 
-
-
 });
 
 /* Place Order */
@@ -115,58 +135,96 @@ router.post('/orders', async (req, res, next) => {
   const time = new Date().getTime().toString();
   const method = "POST";
   const path = "/v2/orders";
-  // const body = JSON.stringify({
-  //   scheduleAt:req.body.scheduleAt,
-  //   serviceType: req.body.serviceType,
-  //   serviceType: req.body.serviceType,
-  //   specialRequests: [],
-  //   stops: [
-  //     {
-  //       location: {
-  //         lat: req.body.pick_up_point_lat,
-  //         lng: req.body.pick_up_point_lng,
-  //       },
-  //       addresses: {
-  //         ms_MY: {
-  //           displayString:req.body.pick_up_point_displayString,
-  //           market: req.body.market,
-  //         },
-  //       },
-  //     },
-  //     {
-  //       location: {
-  //         lat: req.body.drop_point_lat,
-  //         lng: req.body.drop_point_lng,
-  //       },
-  //       addresses: {
-  //         ms_MY: {
-  //           displayString:req.body.drop_point_displayString,
-  //           market: req.body.market,
-  //         },
-  //       },
-  //     },
-  //   ],
-  //   requesterContact:{
-  //     name:req.body.requesterContacName,
-  //     phone:req.body.requesterContactPhone
 
-  //   },
-  //   deliveries: [
-  //     {
-  //       toStop: 1,
-  //       toContact: {
-  //         name: req.body.deliveriesName,
-  //         phone: req.body.deliveriesPhone,
-  //       },
-  //     },
-  //   ],
-  //   quotedTotalFee:{
-  //     amount: req.body.quotedTotalFee.amount,
-  //     currency: req.body.quotedTotalFee.currency
-  //   },
-  //   pod:req.body.pod
-  // });
-  const body = JSON.stringify(req.body)
+   //======= match stops body for lalamove
+   let dropPoint = req.body.drop_point
+   function renameStops(){
+     dropPoint = dropPoint.map(function(obj){
+       obj['lat'] = obj['drop_point_lat']
+       obj['lng'] = obj['drop_point_lng'] 
+       obj['displayString'] =  obj['drop_point_displayString']
+       delete  obj['drop_point_lat']
+       delete  obj['drop_point_lng'] 
+       delete  obj['drop_point_displayString']
+       return obj;
+     })
+   }
+   renameStops() // call the function
+   let object = [
+       {
+         location:{
+           "lat":req.body.pick_up_point_lat,
+           "lng":req.body.pick_up_point_lng
+         },
+         addresses:{
+           "ms_MY":{
+             "displayString":req.body.pick_up_point_displayString,
+             "market":req.body.market
+           }
+         }
+        }   
+   ]
+ 
+   for(let i = 0; i < dropPoint.length; i++){
+     let data = [
+        {
+         location:{
+           "lat":dropPoint[i].lat,
+           "lng":dropPoint[i].lng
+         },
+         addresses:{
+           "ms_MY":{
+             "displayString":dropPoint[i].displayString,
+             "market":req.body.market
+           }
+         }
+        }
+     ]
+     object.push(...data)
+ 
+   }
+   const stops = object;
+   //======= end of match stops body for lalamove ===
+ 
+   //==== match deliveries body for lalamove
+ 
+   let deliveries = [];
+   let temp = req.body.deliveries
+   
+   for(let i = 0; i < temp.length; i++){
+     let data = [
+       {
+         "toStop":i+1,
+         "toContact":{
+           "name":temp[i].deliveriesName,
+           "phone":temp[i].deliveriesPhone,
+         },
+         "remarks":temp[i].remarks
+       }
+     ]
+     deliveries.push(...data)
+   }
+   //==== end of match deliveris body for lalamove
+
+  const body = JSON.stringify({
+    quotedTotalFee:{
+      amount:req.body.quotedTotalFee.amount,
+      currency:req.body.quotedTotalFee.currency,
+    },
+    sms:false,
+    pod:true,
+    scheduleAt:req.body.scheduleAt,
+    serviceType: req.body.serviceType,
+    specialRequests: req.body.specialRequests,
+    stops:stops,
+    requesterContact:{
+      name:req.body.requesterContacName,
+      phone:req.body.requesterContactPhone
+    },
+    deliveries: deliveries
+  });
+
+
 
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n${body}`;
   const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
@@ -200,8 +258,6 @@ router.post('/orders', async (req, res, next) => {
       message:e
     })
   }
-
-
 })
 
 router.get('/orders/:orderRef', async (req, res, next) => {
