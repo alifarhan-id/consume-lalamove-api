@@ -395,7 +395,8 @@ router.put('/orders/:orderRef/cancel', async (req, res, next) =>{
   const API_KEY = process.env.API_KEY;
   const SECRET = process.env.SECRET;
   const time = new Date().getTime().toString();
-  let body ={}
+
+  let body = JSON.stringify({})
   const method = "PUT";
   const path = `/v2/orders/${req.params.orderRef}/cancel`;
   const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n${body}`;
@@ -408,7 +409,7 @@ router.put('/orders/:orderRef/cancel', async (req, res, next) =>{
         "Content-Type": "application/json",
         Authorization: `hmac ${API_KEY}:${time}:${SIGNATURE}`,
         Accept: "application/json",
-        "X-LLM-Market": "MY_KUL",
+        "X-LLM-Market": req.body.market,
       },
     })
     .then((result) => {
@@ -435,6 +436,57 @@ router.put('/orders/:orderRef/cancel', async (req, res, next) =>{
   }
 
 })
+
+
+router.put('/orders/:orderRef/tips', async (req, res) => {
+  const API_KEY = process.env.API_KEY;
+  const SECRET = process.env.SECRET;
+  const time = new Date().getTime().toString();
+
+  let body = JSON.stringify({tips:req.body.tips})
+
+  const method = "PUT";
+  const path = `/v2/orders/${req.params.orderRef}/tips`;
+  const rawSignature = `${time}\r\n${method}\r\n${path}\r\n\r\n${body}`;
+  const SIGNATURE = CryptoJS.HmacSHA256(rawSignature, SECRET).toString();
+
+  try{
+    const response = await axios
+    .put('https://rest.sandbox.lalamove.com'+path, body, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `hmac ${API_KEY}:${time}:${SIGNATURE}`,
+        Accept: "application/json",
+        "X-LLM-Market": req.headers.market,
+      },
+    })
+    .then((result) => {
+      return res.status(200).json({
+        statusCode: 200,
+        data:result.data
+
+      })
+    }).catch((err) => {
+      console.log(err)
+      if(err.response.data){
+
+        return res.status(409).json({
+          statusCode:409,
+          message:err.response.data
+        })
+      }
+    })
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({
+      statusCode:500,
+      message:"something happend on the server"
+    })
+  }
+
+})
+
 
 
 module.exports = router;
